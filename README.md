@@ -5,10 +5,8 @@ projeto integrador do 3 semestre do SENAI Gaspar Ricardo Junior
 
 **Empresa:** AGRO TECH GOIÁS  
 **Área de Atuação:** Tecnologia da Informação  
-**Estado:** GO  
-**Instituição:** Faculdade SENAI Fatesg (GO)  
-**Vigência:** 28/10/2025 a 28/10/2026  
-**Status:** Ativo  
+**Estado:** SP  
+**Instituição:** Faculdade SENAI  Gaspar Ricardo Junior (SP)    
 
 ---
 
