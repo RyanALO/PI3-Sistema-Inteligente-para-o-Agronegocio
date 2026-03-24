@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Backend
+backend/agrotech.db
+backend/.env
+
+# Web
+web/dist/
+
+# Mobile
+mobile/.expo/
+mobile/assets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
