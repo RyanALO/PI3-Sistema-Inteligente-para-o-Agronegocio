@@ -38,7 +38,7 @@ Armazena os usuários do sistema.
 
 ---
 
-## 👥 `equipes`
+## `equipes`
 
 Representa equipes de usuários.
 
@@ -50,7 +50,7 @@ Representa equipes de usuários.
 
 ---
 
-## 🔗 `usuario_equipe`
+## `usuario_equipe`
 
 Relaciona usuários às equipes (N:N).
 
