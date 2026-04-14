@@ -128,7 +128,7 @@ Relacionamento entre sensores e talhões (N:N).
 | Campo     | Tipo      | Descrição     |
 | --------- | --------- | ------------- |
 | id        | SERIAL PK | Identificador |
-| plot_id   | FK        | Talhão        |
+| talhao_id   | FK        | Talhão        |
 | sensor_id | FK        | Sensor        |
 
 ---
