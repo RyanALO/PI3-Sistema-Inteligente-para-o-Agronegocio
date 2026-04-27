@@ -18,6 +18,10 @@ const router = express.Router();
  *         description: Não autorizado
  */
 router.get('/', async (req, res, next) => {
+  if (req.baseUrl && req.baseUrl.includes('historico')) {
+    return historicoHandler(req, res, next);
+  }
+  
   try {
     const { rows } = await pool.query(`
       SELECT DISTINCT ON (s.id)
@@ -122,13 +126,7 @@ async function historicoHandler(req, res, next) {
 // Acessível em GET /api/sensores/historico
 router.get('/historico', historicoHandler);
 
-// Acessível em GET /api/historico (montado na raiz)
-router.get('/', (req, res, next) => {
-  // Quando montado em /api/historico, a rota raiz serve o histórico
-  if (req.baseUrl && req.baseUrl.includes('historico')) {
-    return historicoHandler(req, res, next);
-  }
-  next();
-});
+// Acessível em GET /api/sensores/historico
+router.get('/historico', historicoHandler);
 
 module.exports = router;

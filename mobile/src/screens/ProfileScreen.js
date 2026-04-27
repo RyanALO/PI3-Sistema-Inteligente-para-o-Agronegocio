@@ -1,181 +1,138 @@
-import React from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import colors from '../theme/colors';
-import { getAuth, clearAuth } from '../services/api';
 
 export default function ProfileScreen({ navigation }) {
-  const { user } = getAuth();
+  const [fazenda] = useState({
+    nome: 'Fazenda Santa Helena',
+    area: '450 ha',
+    localizacao: 'Rio Verde - GO',
+    culturas: 'Soja, Milho, Café',
+    certificacao: '✔️ Orgânica',
+    membros: [
+      { id: 1, nome: 'Você', iniciais: 'GS' },
+      { id: 2, nome: 'João', iniciais: 'JS' },
+      { id: 3, nome: 'Maria', iniciais: 'MO' },
+    ]
+  });
 
-  const handleLogout = () => {
-    clearAuth();
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  const handleAddMember = () => {
+    Alert.alert('Novo Membro', 'Fluxo para convidar novo membro iniciado.');
   };
 
-  const initials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'AT';
-
-  const farmStats = [
-    { icon: '📏', label: 'ÁREA TOTAL', value: '1,250 ha' },
-    { icon: '📍', label: 'LOCAL', value: 'Goiás, BR' },
-    { icon: '🌾', label: 'CULTIVO', value: 'Soja/Milho' },
-  ];
-
-  const talhoes = [
-    { name: 'Talhão Norte A1', crop: 'Soja', area: '450 ha', status: 'Saudável', statusColor: colors.success },
-    { name: 'Talhão Leste B2', crop: 'Milho', area: '320 ha', status: 'Atenção', statusColor: colors.warning },
-  ];
-
-  const team = ['Carlos M.', 'Ana P.', 'Roberto'];
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatarLarge}>
-          <Text style={styles.avatarText}>{initials}</Text>
-        </View>
-        <Text style={styles.farmName}>{user?.farm_name || 'Fazenda AgroTech'}</Text>
-        <Text style={styles.certification}>🏅 AgroSmart Tech Certified</Text>
-
-        <TouchableOpacity style={styles.editBtn}>
-          <Text style={styles.editBtnText}>✏️ Editar Perfil</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Overview Stats */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardTitle}>Visão Geral</Text>
-          <Text style={styles.updatedText}>Atualizado hoje</Text>
-        </View>
-        <View style={styles.statsRow}>
-          {farmStats.map((stat, i) => (
-            <View key={i} style={styles.statItem}>
-              <Text style={styles.statIcon}>{stat.icon}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Talhões */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardTitle}>Talhões Ativos</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>Ver todos</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+        {/* Cover & Avatar */}
+        <View style={styles.coverPhoto}>
+          <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Settings')}>
+            <Text style={styles.settingsIcon}>⚙️</Text>
           </TouchableOpacity>
         </View>
-        {talhoes.map((t, i) => (
-          <View key={i} style={styles.talhaoItem}>
-            <View style={styles.talhaoIcon}>
-              <Text style={styles.talhaoEmoji}>🌿</Text>
-            </View>
-            <View style={styles.talhaoInfo}>
-              <Text style={styles.talhaoName}>{t.name}</Text>
-              <Text style={styles.talhaoMeta}>{t.crop} • {t.area}</Text>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: t.statusColor + '20' }]}>
-              <Text style={[styles.statusText, { color: t.statusColor }]}>{t.status}</Text>
-            </View>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarEmoji}>🌾</Text>
           </View>
-        ))}
-      </View>
-
-      {/* Team */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardTitle}>Equipe</Text>
-          <TouchableOpacity>
-            <Text style={styles.addBtn}>+</Text>
+          <Text style={styles.farmName}>{fazenda.nome}</Text>
+          <Text style={styles.farmCert}>{fazenda.certificacao}</Text>
+          
+          <TouchableOpacity style={styles.btnEdit} onPress={() => Alert.alert('Aviso', 'Fluxo de edição em breve.')}>
+            <Text style={styles.btnEditText}>Editar Perfil</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.teamRow}>
-          {team.map((name, i) => (
-            <View key={i} style={styles.teamMember}>
-              <View style={[styles.teamAvatar, { backgroundColor: [colors.primary, colors.accentTeal, colors.accentOrange][i] }]}>
-                <Text style={styles.teamAvatarText}>{name[0]}</Text>
-              </View>
-              <Text style={styles.teamName}>{name}</Text>
-            </View>
-          ))}
+
+        {/* Visão Geral */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Visão Geral da Propriedade</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Área Total:</Text>
+            <Text style={styles.value}>{fazenda.area}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Localização:</Text>
+            <Text style={styles.value}>{fazenda.localizacao}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Culturas:</Text>
+            <Text style={styles.value}>{fazenda.culturas}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Logout */}
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>🚪 Sair da conta</Text>
-      </TouchableOpacity>
+        {/* Talhões Link */}
+        <TouchableOpacity style={styles.cardBtn} onPress={() => navigation.navigate('Talhoes')}>
+          <View style={styles.cardBtnContent}>
+             <Text style={styles.cardBtnEmoji}>🌱</Text>
+             <View>
+               <Text style={styles.cardBtnTitle}>Meus Talhões</Text>
+               <Text style={styles.cardBtnSub}>Gerencie os campos e dados</Text>
+             </View>
+          </View>
+          <Text style={styles.arrowIcon}>→</Text>
+        </TouchableOpacity>
 
-      <View style={{ height: 100 }} />
-    </ScrollView>
+        {/* Equipe */}
+        <View style={styles.card}>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>Equipe Vinculada</Text>
+          </View>
+          
+          <View style={styles.teamRow}>
+            {fazenda.membros.map(m => (
+              <View key={m.id} style={styles.teamMember}>
+                <View style={[styles.memberAvatar, m.nome === 'Você' && styles.memberAvatarMe]}>
+                  <Text style={[styles.memberInitials, m.nome === 'Você' && {color: '#fff'}]}>{m.iniciais}</Text>
+                </View>
+                <Text style={styles.memberName}>{m.nome}</Text>
+              </View>
+            ))}
+            
+            <TouchableOpacity style={styles.teamMember} onPress={handleAddMember}>
+              <View style={styles.memberAvatarAdd}>
+                <Text style={styles.memberInitialsAdd}>+</Text>
+              </View>
+              <Text style={styles.memberNameAdd}>Adicionar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  profileHeader: {
-    alignItems: 'center', paddingTop: 20, paddingBottom: 24,
-    backgroundColor: colors.cardWhite,
-    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-  },
-  avatarLarge: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: { color: '#fff', fontSize: 28, fontWeight: '700' },
-  farmName: { fontSize: 22, fontWeight: '700', color: colors.textDark },
-  certification: { fontSize: 13, color: colors.accentTeal, marginTop: 4 },
-  editBtn: {
-    marginTop: 14, borderWidth: 1.5, borderColor: colors.primary,
-    borderRadius: 20, paddingHorizontal: 24, paddingVertical: 8,
-  },
-  editBtnText: { color: colors.primary, fontSize: 14, fontWeight: '500' },
-  card: {
-    backgroundColor: colors.cardWhite, borderRadius: 14, padding: 18,
-    marginHorizontal: 20, marginTop: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
-  },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: colors.textDark },
-  updatedText: { fontSize: 12, color: colors.textMuted },
-  seeAll: { fontSize: 13, color: colors.accentTeal, fontWeight: '500' },
-  addBtn: { fontSize: 22, color: colors.primary, fontWeight: '300' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  statItem: { alignItems: 'center' },
-  statIcon: { fontSize: 22, marginBottom: 6 },
-  statLabel: { fontSize: 10, fontWeight: '600', color: colors.textMuted, letterSpacing: 0.5 },
-  statValue: { fontSize: 14, fontWeight: '600', color: colors.textDark, marginTop: 2 },
-  talhaoItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  talhaoIcon: {
-    width: 42, height: 42, borderRadius: 12, backgroundColor: '#E8F5E9',
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
-  },
-  talhaoEmoji: { fontSize: 20 },
-  talhaoInfo: { flex: 1 },
-  talhaoName: { fontSize: 14, fontWeight: '600', color: colors.textDark },
-  talhaoMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  statusText: { fontSize: 11, fontWeight: '600' },
-  teamRow: { flexDirection: 'row', gap: 20 },
-  teamMember: { alignItems: 'center' },
-  teamAvatar: {
-    width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-  },
-  teamAvatarText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  teamName: { fontSize: 12, color: colors.textDark, marginTop: 6, fontWeight: '500' },
-  logoutBtn: {
-    marginHorizontal: 20, marginTop: 20,
-    backgroundColor: '#FFEBEE', borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center',
-  },
-  logoutText: { color: colors.danger, fontSize: 15, fontWeight: '600' },
+  scrollContent: { paddingBottom: 40 },
+  coverPhoto: { height: 120, backgroundColor: colors.primaryLight },
+  settingsBtn: { position: 'absolute', top: 30, right: 16, width: 40, height: 40, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  settingsIcon: { fontSize: 20, color: '#fff' },
+  profileHeader: { alignItems: 'center', marginTop: -40, marginBottom: 20, paddingHorizontal: 16 },
+  avatarContainer: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', elevation: 4, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: colors.primary },
+  avatarEmoji: { fontSize: 40 },
+  farmName: { fontSize: 20, fontWeight: '700', color: colors.textDark, marginTop: 8 },
+  farmCert: { fontSize: 13, color: colors.success, fontWeight: '600', marginTop: 4 },
+  btnEdit: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 20, borderWidth: 1, borderColor: colors.primary, borderRadius: 20 },
+  btnEditText: { color: colors.primary, fontWeight: '600' },
+  card: { backgroundColor: '#fff', marginHorizontal: 16, padding: 16, borderRadius: 12, marginBottom: 16, elevation: 1 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textDark, marginBottom: 12 },
+  cardTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: colors.border },
+  label: { color: colors.textMuted },
+  value: { color: colors.textDark, fontWeight: '600' },
+  cardBtn: { backgroundColor: '#fff', marginHorizontal: 16, padding: 16, borderRadius: 12, marginBottom: 16, elevation: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardBtnContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cardBtnTitle: { fontSize: 16, fontWeight: '700', color: colors.textDark },
+  cardBtnSub: { fontSize: 12, color: colors.textMuted },
+  cardBtnEmoji: { fontSize: 24 },
+  arrowIcon: { fontSize: 20, color: colors.textMuted },
+  teamRow: { flexDirection: 'row', gap: 16 },
+  teamMember: { alignItems: 'center', width: 60 },
+  memberAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.border, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  memberAvatarMe: { backgroundColor: colors.primary },
+  memberInitials: { fontSize: 14, fontWeight: '700', color: colors.textDark },
+  memberName: { fontSize: 11, color: colors.textDark },
+  memberAvatarAdd: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#f0f0f0', borderStyle: 'dashed', borderWidth: 1, borderColor: colors.textMuted, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  memberInitialsAdd: { fontSize: 20, color: colors.textMuted },
+  memberNameAdd: { fontSize: 11, color: colors.textMuted }
 });

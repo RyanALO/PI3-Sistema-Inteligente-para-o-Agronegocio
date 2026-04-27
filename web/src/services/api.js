@@ -95,3 +95,40 @@ export async function getLatestDados() {
 }
 
 export { getToken, getUser, logout, isAuthenticated };
+
+// ----- Novas Rotas Adicionadas para Integração Total -----
+
+export async function getFazendas() {
+  return apiFetch('/fazenda');
+}
+
+export async function getFazendaById(id) {
+  return apiFetch(`/fazenda/${id}`);
+}
+
+export async function getTalhoesByFazenda(fazendaId) {
+  return apiFetch(`/fazenda/${fazendaId}/talhoes`);
+}
+
+export async function acionarIrrigacaoManual(talhaoId, dispId, duracao = 60, quantidade_agua = 500) {
+  return apiFetch('/irrigacao/acionar', {
+    method: 'POST',
+    body: JSON.stringify({
+      talhao_id: talhaoId,
+      dispositivo_id: dispId,
+      duracao_minutos: duracao,
+      quantidade_agua: quantidade_agua
+    })
+  });
+}
+
+export async function getConfiguracoes() {
+  return apiFetch('/configuracoes');
+}
+
+export async function updateConfiguracoes(config) {
+  return apiFetch('/configuracoes', {
+    method: 'PUT',
+    body: JSON.stringify(config)
+  });
+}
