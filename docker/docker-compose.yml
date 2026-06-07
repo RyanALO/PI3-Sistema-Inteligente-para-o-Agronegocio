@@ -1,0 +1,38 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    volumes:
+      - influx_data:/var/lib/influxdb2
+
+  nodered:
+    image: nodered/node-red
+    ports:
+      - "1880:1880"
+    depends_on:
+      - mosquitto
+      - influxdb
+    volumes:
+      - nodered_data:/data
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - influxdb
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  influx_data:
+  nodered_data:
+  grafana_data:
+
