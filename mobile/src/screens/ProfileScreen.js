@@ -1,16 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image
 } from 'react-native';
 import colors from '../theme/colors';
 import { getAuth, clearAuth } from '../services/api';
+import ModalAddTalhao from '../components/modals/ModalAddTalhao';
+import ModalEditPerfil from '../components/modals/ModalEditPerfil';
 
 export default function ProfileScreen({ navigation }) {
   const { user } = getAuth();
+  const [isModalAddTalhaoVisible, setIsModalAddTalhaoVisible] = useState(false);
+  const [isModalEditPerfilVisible, setIsModalEditPerfilVisible] = useState(false);
+  const [fazendaId] = useState(1); // Would come from context in real app
 
   const handleLogout = () => {
     clearAuth();
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  };
+
+  const handleAddTalhaoSuccess = (newTalhao) => {
+    // In a real app, would reload the talhões list from API
+    console.log('Novo talhão criado:', newTalhao);
+  };
+
+  const handleEditPerfilSuccess = (updatedUser) => {
+    console.log('Perfil atualizado:', updatedUser);
+    // In a real app, would update the user context/state
   };
 
   const initials = user?.name
@@ -40,7 +55,10 @@ export default function ProfileScreen({ navigation }) {
         <Text style={styles.farmName}>{user?.farm_name || 'Fazenda AgroTech'}</Text>
         <Text style={styles.certification}>🏅 AgroSmart Tech Certified</Text>
 
-        <TouchableOpacity style={styles.editBtn}>
+        <TouchableOpacity
+          style={styles.editBtn}
+          onPress={() => setIsModalEditPerfilVisible(true)}
+        >
           <Text style={styles.editBtnText}>✏️ Editar Perfil</Text>
         </TouchableOpacity>
       </View>
@@ -66,8 +84,8 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
           <Text style={styles.cardTitle}>Talhões Ativos</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>Ver todos</Text>
+          <TouchableOpacity onPress={() => setIsModalAddTalhaoVisible(true)}>
+            <Text style={styles.addBtn}>+</Text>
           </TouchableOpacity>
         </View>
         {talhoes.map((t, i) => (
@@ -112,6 +130,21 @@ export default function ProfileScreen({ navigation }) {
       </TouchableOpacity>
 
       <View style={{ height: 100 }} />
+
+      {/* Modals */}
+      <ModalAddTalhao
+        isVisible={isModalAddTalhaoVisible}
+        fazenda_id={fazendaId}
+        onClose={() => setIsModalAddTalhaoVisible(false)}
+        onSuccess={handleAddTalhaoSuccess}
+      />
+
+      <ModalEditPerfil
+        isVisible={isModalEditPerfilVisible}
+        currentUser={user}
+        onClose={() => setIsModalEditPerfilVisible(false)}
+        onSuccess={handleEditPerfilSuccess}
+      />
     </ScrollView>
   );
 }

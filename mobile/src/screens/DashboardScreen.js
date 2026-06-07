@@ -4,6 +4,8 @@ import {
 } from 'react-native';
 import colors from '../theme/colors';
 import { getDashboardSummary } from '../services/api';
+import ModalAddEstoque from '../components/modals/ModalAddEstoque';
+import ModalEditEstoque from '../components/modals/ModalEditEstoque';
 
 const { width } = Dimensions.get('window');
 
@@ -11,15 +13,20 @@ export default function DashboardScreen() {
   const [data, setData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [timeFilter, setTimeFilter] = useState('Hoje');
+  const [isModalAddEstoqueVisible, setIsModalAddEstoqueVisible] = useState(false);
+  const [isModalEditEstoqueVisible, setIsModalEditEstoqueVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [estoqueList, setEstoqueList] = useState([]);
+  const [fazendaId] = useState(1); // Would come from context in real app
 
   const loadData = useCallback(async () => {
     try {
-      const result = await getDashboardSummary();
+      const result = await getDashboardSummary(timeFilter);
       setData(result);
     } catch (err) {
       console.log('Dashboard error:', err);
     }
-  }, []);
+  }, [timeFilter]);
 
   useEffect(() => {
     loadData();
@@ -31,6 +38,25 @@ export default function DashboardScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
+  };
+
+  const handleAddEstoqueSuccess = (newItem) => {
+    console.log('Item adicionado:', newItem);
+    setEstoqueList([...estoqueList, newItem]);
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setIsModalEditEstoqueVisible(true);
+  };
+
+  const handleEditEstoqueSuccess = (updatedItem) => {
+    console.log('Item atualizado:', updatedItem);
+    const updated = estoqueList.map(item =>
+      item.id === updatedItem.id ? updatedItem : item
+    );
+    setEstoqueList(updated);
+    setIsModalEditEstoqueVisible(false);
   };
 
   const kpis = data?.kpis || {};
@@ -121,19 +147,47 @@ export default function DashboardScreen() {
       <View style={[styles.card, { marginBottom: 100 }]}>
         <View style={styles.cardHeaderRow}>
           <Text style={styles.cardTitle}>Estoque de Insumos</Text>
-          <Text style={styles.stockTotal}>Total: {stock.total}</Text>
+          <TouchableOpacity onPress={() => setIsModalAddEstoqueVisible(true)}>
+            <Text style={styles.addBtn}>+</Text>
+          </TouchableOpacity>
         </View>
-        {stock.items.map((item, i) => {
-          const itemColors = [colors.success, colors.info, colors.accentOrange];
-          return (
-            <View key={i} style={styles.stockItem}>
-              <View style={[styles.stockDot, { backgroundColor: itemColors[i] }]} />
-              <Text style={styles.stockName}>{item.name}</Text>
-              <Text style={styles.stockPct}>{item.percentage}%</Text>
-            </View>
-          );
-        })}
+        {stock.items && stock.items.length > 0 ? (
+          stock.items.map((item, i) => {
+            const itemColors = [colors.success, colors.info, colors.accentOrange];
+            return (
+              <TouchableOpacity
+                key={i}
+                style={styles.stockItem}
+                onPress={() => handleEditItem(item)}
+              >
+                <View style={[styles.stockDot, { backgroundColor: itemColors[i] }]} />
+                <Text style={styles.stockName}>{item.name}</Text>
+                <Text style={styles.stockPct}>{item.percentage}%</Text>
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <Text style={styles.emptyText}>Nenhum item no estoque</Text>
+        )}
       </View>
+
+      {/* Modals */}
+      <ModalAddEstoque
+        isVisible={isModalAddEstoqueVisible}
+        fazenda_id={fazendaId}
+        onClose={() => setIsModalAddEstoqueVisible(false)}
+        onSuccess={handleAddEstoqueSuccess}
+      />
+
+      {editingItem && (
+        <ModalEditEstoque
+          isVisible={isModalEditEstoqueVisible}
+          itemId={editingItem.id}
+          item={editingItem}
+          onClose={() => setIsModalEditEstoqueVisible(false)}
+          onSuccess={handleEditEstoqueSuccess}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -190,4 +244,6 @@ const styles = StyleSheet.create({
   stockDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
   stockName: { flex: 1, fontSize: 14, color: colors.textDark },
   stockPct: { fontSize: 14, fontWeight: '600', color: colors.textMuted },
+  addBtn: { fontSize: 22, color: colors.primary, fontWeight: '300' },
+  emptyText: { fontSize: 14, color: colors.textMuted, fontStyle: 'italic', marginVertical: 10 },
 });
