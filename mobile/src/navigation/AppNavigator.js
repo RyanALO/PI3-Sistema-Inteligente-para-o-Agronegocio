@@ -7,12 +7,17 @@ import { Text, View, StyleSheet } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/DashboardScreen';
+import MetricsScreen from '../screens/MetricsScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TalhoesScreen from '../screens/TalhoesScreen';
+import TalhaoDetailScreen from '../screens/TalhaoDetailScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import colors from '../theme/colors';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 function TabIcon({ label, emoji, focused }) {
   return (
@@ -31,6 +36,17 @@ const tabStyles = StyleSheet.create({
   label: { fontSize: 10, color: colors.textMuted, marginTop: 2 },
   labelActive: { color: colors.primary, fontWeight: '600' },
 });
+
+function ProfileStackNavigator() {
+  return (
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStack.Screen name="Talhoes" component={TalhoesScreen} />
+      <ProfileStack.Screen name="TalhaoDetail" component={TalhaoDetailScreen} />
+      <ProfileStack.Screen name="Settings" component={SettingsScreen} />
+    </ProfileStack.Navigator>
+  );
+}
 
 function MainTabs() {
   return (
@@ -62,7 +78,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Metrics"
-        component={DashboardScreen}
+        component={MetricsScreen}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Métricas" focused={focused} />,
         }}
@@ -76,7 +92,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStackNavigator}
         options={{
           tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Perfil" focused={focused} />,
         }}

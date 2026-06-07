@@ -17,6 +17,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const dadosRoutes     = require('./routes/dados');
 const fazendaRoutes   = require('./routes/fazenda');
 const estoqueRoutes   = require('./routes/estoque');
+const configRoutes    = require('./routes/configuracoes');
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use('/api/dashboard',  authMiddleware, dashboardRoutes);
 app.use('/api/dados',      authMiddleware, dadosRoutes);
 app.use('/api/fazenda',    authMiddleware, fazendaRoutes);
 app.use('/api/estoque',    authMiddleware, estoqueRoutes);
+app.use('/api/configuracoes', authMiddleware, configRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -107,6 +109,12 @@ async function startServer() {
     process.exit(1);
   }
 
+  // --- Bootstrap do Sistema Inteligente ---
+  const brain = require('./services/brain');
+  const simulator = require('./services/simulator');
+  await brain.init();
+  simulator.start(); // Inicia as leituras IoT a cada 15 segundos
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('🌱 ============================================');
@@ -118,6 +126,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
