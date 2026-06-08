@@ -10,17 +10,12 @@ export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
       Alert.alert('Erro', 'Preencha todos os campos');
-      return;
-    }
-    if (!terms) {
-      Alert.alert('Erro', 'Aceite os Termos de Uso');
       return;
     }
     if (password.length < 6) {
@@ -107,18 +102,6 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
           <TouchableOpacity
-            style={styles.termsRow}
-            onPress={() => setTerms(!terms)}
-          >
-            <View style={[styles.checkbox, terms && styles.checkboxChecked]}>
-              {terms && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.termsText}>
-              Eu aceito os <Text style={styles.termsLink}>Termos de Uso</Text>
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={loading}
@@ -173,16 +156,6 @@ const styles = StyleSheet.create({
   inputIcon: { fontSize: 16, marginRight: 8 },
   input: { flex: 1, paddingVertical: 12, fontSize: 15, color: colors.textDark },
   eyeIcon: { fontSize: 18, padding: 4 },
-  termsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  checkbox: {
-    width: 22, height: 22, borderRadius: 6,
-    borderWidth: 2, borderColor: colors.border,
-    alignItems: 'center', justifyContent: 'center', marginRight: 10,
-  },
-  checkboxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
-  checkmark: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  termsText: { fontSize: 13, color: colors.textMuted },
-  termsLink: { color: colors.accentTeal, fontWeight: '500' },
   btn: {
     backgroundColor: colors.accentTeal, borderRadius: 12, paddingVertical: 15,
     alignItems: 'center', justifyContent: 'center',

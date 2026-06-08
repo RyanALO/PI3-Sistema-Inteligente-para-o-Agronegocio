@@ -96,21 +96,6 @@ export default function LoginScreen({ navigation }) {
               <Text style={styles.btnText}>Entrar</Text>
             )}
           </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Ou continue com</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialBtn}>
-              <Text style={styles.socialText}>G  Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialBtn}>
-              <Text style={styles.socialText}>🍎 Apple</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         <TouchableOpacity
@@ -161,15 +146,6 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.7 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
-  dividerText: { marginHorizontal: 12, color: colors.textMuted, fontSize: 13 },
-  socialRow: { flexDirection: 'row', gap: 12 },
-  socialBtn: {
-    flex: 1, borderWidth: 1.5, borderColor: colors.border, borderRadius: 10,
-    paddingVertical: 12, alignItems: 'center',
-  },
-  socialText: { fontSize: 14, fontWeight: '500', color: colors.textDark },
   footer: { alignItems: 'center', marginTop: 24 },
   footerText: { fontSize: 14, color: colors.textMuted },
   footerLink: { color: colors.primary, fontWeight: '600' },

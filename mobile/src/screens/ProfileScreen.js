@@ -1,44 +1,88 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image
+} from 'react-native';
 import colors from '../theme/colors';
+import { getAuth, clearAuth } from '../services/api';
+import ModalAddTalhao from '../components/modals/ModalAddTalhao';
+import ModalEditPerfil from '../components/modals/ModalEditPerfil';
 
 export default function ProfileScreen({ navigation }) {
-  const [fazenda] = useState({
-    nome: 'Fazenda Santa Helena',
-    area: '450 ha',
-    localizacao: 'Rio Verde - GO',
-    culturas: 'Soja, Milho, Café',
-    certificacao: '✔️ Orgânica',
-    membros: [
-      { id: 1, nome: 'Você', iniciais: 'GS' },
-      { id: 2, nome: 'João', iniciais: 'JS' },
-      { id: 3, nome: 'Maria', iniciais: 'MO' },
-    ]
-  });
+  const { user } = getAuth();
+  const [isModalAddTalhaoVisible, setIsModalAddTalhaoVisible] = useState(false);
+  const [isModalEditPerfilVisible, setIsModalEditPerfilVisible] = useState(false);
+  const [fazendaId] = useState(1); // Would come from context in real app
+
+  const handleLogout = () => {
+    clearAuth();
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  };
+
+  const handleAddTalhaoSuccess = (newTalhao) => {
+    // In a real app, would reload the talhões list from API
+    console.log('Novo talhão criado:', newTalhao);
+  };
+
+  const handleEditPerfilSuccess = (updatedUser) => {
+    console.log('Perfil atualizado:', updatedUser);
+    // In a real app, would update the user context/state
+  };
+
+  const initials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'AT';
+
+  const farmStats = [
+    { icon: '📏', label: 'ÁREA TOTAL', value: '1,250 ha' },
+    { icon: '📍', label: 'LOCAL', value: 'Goiás, BR' },
+    { icon: '🌾', label: 'CULTIVO', value: 'Soja/Milho' },
+  ];
 
   const handleAddMember = () => {
     Alert.alert('Novo Membro', 'Fluxo para convidar novo membro iniciado.');
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        {/* Cover & Avatar */}
-        <View style={styles.coverPhoto}>
-          <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Settings')}>
-            <Text style={styles.settingsIcon}>⚙️</Text>
-          </TouchableOpacity>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
+      <View style={styles.profileHeader}>
+        <View style={styles.avatarLarge}>
+          <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarEmoji}>🌾</Text>
-          </View>
-          <Text style={styles.farmName}>{fazenda.nome}</Text>
-          <Text style={styles.farmCert}>{fazenda.certificacao}</Text>
-          
-          <TouchableOpacity style={styles.btnEdit} onPress={() => Alert.alert('Aviso', 'Fluxo de edição em breve.')}>
-            <Text style={styles.btnEditText}>Editar Perfil</Text>
+        <Text style={styles.farmName}>{user?.farm_name || 'Fazenda AgroTech'}</Text>
+        <Text style={styles.certification}>🏅 AgroSmart Tech Certified</Text>
+
+        <TouchableOpacity
+          style={styles.editBtn}
+          onPress={() => setIsModalEditPerfilVisible(true)}
+        >
+          <Text style={styles.editBtnText}>✏️ Editar Perfil</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Overview Stats */}
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.cardTitle}>Visão Geral</Text>
+          <Text style={styles.updatedText}>Atualizado hoje</Text>
+        </View>
+        <View style={styles.statsRow}>
+          {farmStats.map((stat, i) => (
+            <View key={i} style={styles.statItem}>
+              <Text style={styles.statIcon}>{stat.icon}</Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
+              <Text style={styles.statValue}>{stat.value}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Talhões */}
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.cardTitle}>Talhões Ativos</Text>
+          <TouchableOpacity onPress={() => setIsModalAddTalhaoVisible(true)}>
+            <Text style={styles.addBtn}>+</Text>
           </TouchableOpacity>
         </View>
 
@@ -95,9 +139,30 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
+      </View>
 
-      </ScrollView>
-    </View>
+      {/* Logout */}
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Text style={styles.logoutText}>🚪 Sair da conta</Text>
+      </TouchableOpacity>
+
+      <View style={{ height: 100 }} />
+
+      {/* Modals */}
+      <ModalAddTalhao
+        isVisible={isModalAddTalhaoVisible}
+        fazenda_id={fazendaId}
+        onClose={() => setIsModalAddTalhaoVisible(false)}
+        onSuccess={handleAddTalhaoSuccess}
+      />
+
+      <ModalEditPerfil
+        isVisible={isModalEditPerfilVisible}
+        currentUser={user}
+        onClose={() => setIsModalEditPerfilVisible(false)}
+        onSuccess={handleEditPerfilSuccess}
+      />
+    </ScrollView>
   );
 }
 

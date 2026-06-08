@@ -13,6 +13,9 @@ const getApiUrl = () => {
 };
 
 const API_URL = getApiUrl();
+// ⚠️ CHANGE THIS to your computer's local IP when testing with Expo Go
+// Example: 'http://192.168.1.100:3000/api'
+const API_URL = 'http://localhost:3000/api'; // Web/Local testing
 
 async function apiFetch(endpoint, options = {}) {
   const headers = {
@@ -79,8 +82,8 @@ export async function register(name, email, password) {
   return data;
 }
 
-export async function getDashboardSummary() {
-  return authenticatedFetch('/dashboard/summary');
+export async function getDashboardSummary(timeFilter = 'Hoje') {
+  return authenticatedFetch(`/dashboard/summary?filter=${timeFilter}`);
 }
 
 export async function getAlertas() {
@@ -93,4 +96,92 @@ export async function resolveAlerta(id) {
 
 export async function getLatestDados() {
   return authenticatedFetch('/dados/latest');
+}
+
+/**
+ * Authenticated fetch wrapper with Bearer token
+ * Adds Authorization header and handles auth errors
+ * 
+ * @param {string} endpoint - API endpoint (e.g., '/estoque')
+ * @param {Object} options - Fetch options (method, body, etc.)
+ * @returns {Promise<Object>} Response data or throws error
+ * @throws {Error} If not authenticated, network error, or API error
+ * 
+ * @example
+ * const result = await authenticatedFetch('/estoque', {
+ *   method: 'POST',
+ *   body: JSON.stringify({ nome_produto: 'Adubo' })
+ * });
+ */
+export async function authenticatedFetchAPI(endpoint, options = {}) {
+  if (!authToken) {
+    throw new Error('Não autenticado');
+  }
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+        ...options.headers,
+      },
+    });
+
+    const responseData = await response.json();
+
+    if (response.status === 401) {
+      clearAuth();
+      throw new Error('Sessão expirada');
+    }
+
+    if (!response.ok) {
+      throw new Error(responseData.error || `Erro ${response.status}`);
+    }
+
+    return responseData.data || responseData;
+  } catch (error) {
+    if (error.message === 'Sessão expirada') {
+      clearAuth();
+    }
+    throw error;
+  }
+}
+
+/**
+ * Creates a new talhão (plot) in a farm
+ * @param {number} fazendaId - Farm ID
+ * @param {Object} data - Talhão data
+ * @returns {Promise<Object>} Created talhão
+ */
+export async function addTalhao(fazendaId, data) {
+  return authenticatedFetchAPI(`/fazenda/${fazendaId}/talhoes`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Creates a new stock item
+ * @param {Object} data - Stock item data (must include fazenda_id)
+ * @returns {Promise<Object>} Created stock item
+ */
+export async function addEstoque(data) {
+  return authenticatedFetchAPI('/estoque', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Updates an existing stock item
+ * @param {number} itemId - Stock item ID
+ * @param {Object} data - Updated data
+ * @returns {Promise<Object>} Updated stock item
+ */
+export async function updateEstoque(itemId, data) {
+  return authenticatedFetchAPI(`/estoque/${itemId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }

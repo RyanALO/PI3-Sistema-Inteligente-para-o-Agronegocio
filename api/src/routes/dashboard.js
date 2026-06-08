@@ -19,6 +19,22 @@ const router = express.Router();
  */
 router.get('/summary', async (req, res, next) => {
   try {
+    const filter = req.query.filter || 'Hoje';
+    
+    // Determine date range based on filter
+    let dateRange;
+    switch(filter) {
+      case '7 dias':
+        dateRange = "NOW() - INTERVAL '7 days'";
+        break;
+      case 'Este Mês':
+        dateRange = "DATE_TRUNC('month', NOW())";
+        break;
+      case 'Hoje':
+      default:
+        dateRange = "DATE_TRUNC('day', NOW())";
+    }
+
     // KPIs: última umidade do solo e temperatura
     const kpisQuery = await pool.query(`
       SELECT
@@ -26,16 +42,16 @@ router.get('/summary', async (req, res, next) => {
         AVG(CASE WHEN s.tipo = 'temperatura'  THEN l.valor END) AS temperature
       FROM leitura l
       JOIN sensores s ON s.id = l.sensor_id
-      WHERE l.data_hora >= NOW() - INTERVAL '6 hours'
+      WHERE l.data_hora >= ${dateRange}
     `);
 
-    // Histórico de temperatura para o gráfico (últimas 8 horas)
+    // Histórico de temperatura para o gráfico
     const tempHistoryQuery = await pool.query(`
       SELECT
         TO_CHAR(DATE_TRUNC('hour', c.data_hora), 'HH24h') AS time_label,
         ROUND(AVG(c.temperatura)::numeric, 1)              AS avg_temp
       FROM clima c
-      WHERE c.data_hora >= NOW() - INTERVAL '24 hours'
+      WHERE c.data_hora >= ${dateRange}
       GROUP BY DATE_TRUNC('hour', c.data_hora)
       ORDER BY DATE_TRUNC('hour', c.data_hora) ASC
       LIMIT 8
@@ -105,21 +121,27 @@ router.get('/summary', async (req, res, next) => {
         temperature_history: tempHistoryQuery.rows.map(r => ({
           time_label: r.time_label,
           avg_temp: parseFloat(r.avg_temp),
+      kpis: {
+        soil_moisture: Math.round(parseFloat(kpis.soil_moisture) || 0),
+        temperature: parseFloat(parseFloat(kpis.temperature || 0).toFixed(1)),
+      },
+      temperature_history: tempHistoryQuery.rows.map(r => ({
+        time_label: r.time_label,
+        avg_temp: parseFloat(r.avg_temp),
+      })),
+      productivity: {
+        average: avgProductivity,
+        fields: productivityQuery.rows.map(r => ({
+          name: r.name,
+          value: parseFloat(r.value),
         })),
-        productivity: {
-          average: avgProductivity,
-          fields: productivityQuery.rows.map(r => ({
-            name: r.name,
-            value: parseFloat(r.value),
-          })),
-        },
-        stock: {
-          total: `${(totalStock / 1000).toFixed(1)}t`,
-          items: stockQuery.rows.map(r => ({
-            name: r.name,
-            percentage: parseFloat(r.percentage),
-          })),
-        },
+      },
+      stock: {
+        total: `${(totalStock / 1000).toFixed(1)}t`,
+        items: stockQuery.rows.map(r => ({
+          name: r.name,
+          percentage: parseFloat(r.percentage),
+        })),
       },
     });
   } catch (err) {
