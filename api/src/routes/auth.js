@@ -66,7 +66,8 @@ router.post(
       return res.status(400).json({ success: false, error: errors.array()[0].msg, code: 400 });
     }
 
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email.trim().toLowerCase();
 
     try {
       const { rows } = await pool.query(
@@ -145,7 +146,8 @@ router.post(
       return res.status(400).json({ success: false, error: errors.array()[0].msg, code: 400 });
     }
 
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = req.body.email.trim().toLowerCase();
 
     try {
       const existing = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);

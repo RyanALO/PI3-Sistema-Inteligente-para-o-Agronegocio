@@ -48,13 +48,15 @@ class Brain {
       // Se o solo está secando num nível crítico (abaixo do teto mínimo configurado)
       if (valor < config.umidade_minima) {
         
-        // Descobre onde este sensor está (Qual Talhão ele vigia e qual bomba de água atende o Talhão)
+        // Descobre onde este sensor está (Qual Talhão ele vigia)
+        // e usa o próprio dispositivo do sensor como controlador de irrigação,
+        // pois a tabela dispositivo não possui coluna fazenda_id.
         const { rows: infra } = await pool.query(`
-          SELECT t.id AS talhao_id, d.id AS dispositivo_id, t.nome AS talhao_nome
+          SELECT t.id AS talhao_id, s.dispositivo_id AS dispositivo_id, t.nome AS talhao_nome
           FROM talhao_sensors ts
           JOIN talhao t ON t.id = ts.talhao_id
-          JOIN dispositivo d ON d.fazenda_id = t.fazenda_id 
-          WHERE ts.sensor_id = $1 AND d.tipo = 'valvula' LIMIT 1
+          JOIN sensores s ON s.id = ts.sensor_id
+          WHERE ts.sensor_id = $1 LIMIT 1
         `, [sensor.id]);
 
         if (infra.length === 0) return; // Talhão sem válvula conectada, impossível regar
@@ -86,9 +88,9 @@ class Brain {
 
         // 2. Gera a notificação visual na aba de "Alertas" para o Cliente
         await pool.query(
-          `INSERT INTO alerta (talhao_id, sensor_id, tipo, mensagem, gravidade, resolvido)
-           VALUES ($1, $2, 'umidade_baixa', $3, 'critica', false)`,
-          [talhao_id, sensor.id, `Umidade em ${valor}%. Sistema ativou a rega automática.`]
+          `INSERT INTO alerta (talhao_id, tipo, mensagem, nivel, resolvido)
+           VALUES ($1, 'umidade_baixa', $2, 'warning', false)`,
+          [talhao_id, `Umidade em ${valor}%. Sistema ativou a rega automática.`]
         );
       }
     } catch (err) {

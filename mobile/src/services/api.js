@@ -1,6 +1,18 @@
-// ⚠️ CHANGE THIS to your computer's local IP when testing with Expo Go
-// Example: 'http://192.168.1.100:3000/api'
-const API_URL = 'http://10.0.2.2:3000/api'; // Android Emulator default
+import { Platform } from 'react-native';
+
+// Seleciona automaticamente o host correto dependendo da plataforma:
+//   - Android Emulator → 10.0.2.2 (apelido especial para o localhost do PC)
+//   - Web (Expo browser) e iOS Simulator → localhost
+// ⚠️ Se usar Expo Go em um celular físico, substitua pelo IP local do seu PC
+//    ex: const API_URL = 'http://192.168.1.XXX:3000/api';
+const getApiUrl = () => {
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000/api';
+  }
+  return 'http://localhost:3000/api';
+};
+
+const API_URL = getApiUrl();
 
 async function apiFetch(endpoint, options = {}) {
   const headers = {

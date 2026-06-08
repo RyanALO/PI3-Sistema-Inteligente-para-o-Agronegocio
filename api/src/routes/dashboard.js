@@ -76,7 +76,21 @@ router.get('/summary', async (req, res, next) => {
 
     const totalStock = stockQuery.rows.reduce((sum, r) => sum + parseFloat(r.total_qty || 0), 0);
 
+    // Conta dispositivos e alertas
+    const devicesQuery = await pool.query(`
+      SELECT 
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'ativo') AS ativos
+      FROM dispositivo
+    `);
+
+    const alertsQuery = await pool.query(`
+      SELECT COUNT(*) AS active_alerts FROM alerta WHERE resolvido = false
+    `);
+
     const kpis = kpisQuery.rows[0];
+    const devices = devicesQuery.rows[0];
+    const alerts = alertsQuery.rows[0];
 
     return res.json({
       success: true,
@@ -84,6 +98,9 @@ router.get('/summary', async (req, res, next) => {
         kpis: {
           soil_moisture: Math.round(parseFloat(kpis.soil_moisture) || 0),
           temperature: parseFloat(parseFloat(kpis.temperature || 0).toFixed(1)),
+          total_devices: parseInt(devices.total || 0),
+          active_devices: parseInt(devices.ativos || 0),
+          active_alerts: parseInt(alerts.active_alerts || 0),
         },
         temperature_history: tempHistoryQuery.rows.map(r => ({
           time_label: r.time_label,
