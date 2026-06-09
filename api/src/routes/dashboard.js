@@ -110,17 +110,6 @@ router.get('/summary', async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: {
-        kpis: {
-          soil_moisture: Math.round(parseFloat(kpis.soil_moisture) || 0),
-          temperature: parseFloat(parseFloat(kpis.temperature || 0).toFixed(1)),
-          total_devices: parseInt(devices.total || 0),
-          active_devices: parseInt(devices.ativos || 0),
-          active_alerts: parseInt(alerts.active_alerts || 0),
-        },
-        temperature_history: tempHistoryQuery.rows.map(r => ({
-          time_label: r.time_label,
-          avg_temp: parseFloat(r.avg_temp),
       kpis: {
         soil_moisture: Math.round(parseFloat(kpis.soil_moisture) || 0),
         temperature: parseFloat(parseFloat(kpis.temperature || 0).toFixed(1)),

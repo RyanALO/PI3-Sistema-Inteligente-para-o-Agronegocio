@@ -13,9 +13,74 @@ const getApiUrl = () => {
 };
 
 const API_URL = getApiUrl();
-// ⚠️ CHANGE THIS to your computer's local IP when testing with Expo Go
-// Example: 'http://192.168.1.100:3000/api'
-const API_URL = 'http://localhost:3000/api'; // Web/Local testing
+// ⚠️ CHANGE THIS via environment variable when building/running the app
+// The bundler may expose env vars as `process.env.MY_VAR` (depends on your setup)
+// Fallbacks to the hard-coded AWS IP if not provided.
+const SENSORES_AWS_URL = (
+  (typeof process !== 'undefined' && process.env && (process.env.SENSORES_AWS_URL || process.env.REACT_NATIVE_SENSORES_AWS_URL))
+  || 'http://54.88.57.73:3000/sensores'
+);
+
+function toNumber(value) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
+function average(values) {
+  const validValues = values.filter(value => Number.isFinite(value));
+
+  if (validValues.length === 0) {
+    return 0;
+  }
+
+  return validValues.reduce((sum, value) => sum + value, 0) / validValues.length;
+}
+
+function normalizeSensorAws(sensor) {
+  return {
+    id: sensor.id,
+    temperatura: toNumber(sensor.temperatura),
+    umidade: toNumber(sensor.umidade),
+    umidade_solo: toNumber(sensor.umidade_solo),
+  };
+}
+
+export function buildDashboardSummaryFromSensors(sensores = []) {
+  const normalizedSensors = sensores.map(normalizeSensorAws);
+  const totalDevices = normalizedSensors.length;
+
+  return {
+    success: true,
+    kpis: {
+      soil_moisture: Math.round(average(normalizedSensors.map(sensor => sensor.umidade_solo))),
+      temperature: Number(average(normalizedSensors.map(sensor => sensor.temperatura)).toFixed(1)),
+      air_humidity: Math.round(average(normalizedSensors.map(sensor => sensor.umidade))),
+      active_devices: totalDevices,
+      total_devices: totalDevices,
+    },
+    sensores: normalizedSensors,
+  };
+}
+
+export async function getSensoresAws() {
+  const response = await fetch(SENSORES_AWS_URL);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Erro ${response.status} ao buscar sensores AWS`);
+  }
+
+  if (!Array.isArray(data)) {
+    throw new Error('Resposta invalida do endpoint AWS de sensores');
+  }
+
+  return data.map(normalizeSensorAws);
+}
+
+export async function getDashboardSummaryFromSensoresAws() {
+  const sensores = await getSensoresAws();
+  return buildDashboardSummaryFromSensors(sensores);
+}
 
 async function apiFetch(endpoint, options = {}) {
   const headers = {
@@ -148,40 +213,3 @@ export async function authenticatedFetchAPI(endpoint, options = {}) {
   }
 }
 
-/**
- * Creates a new talhão (plot) in a farm
- * @param {number} fazendaId - Farm ID
- * @param {Object} data - Talhão data
- * @returns {Promise<Object>} Created talhão
- */
-export async function addTalhao(fazendaId, data) {
-  return authenticatedFetchAPI(`/fazenda/${fazendaId}/talhoes`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-/**
- * Creates a new stock item
- * @param {Object} data - Stock item data (must include fazenda_id)
- * @returns {Promise<Object>} Created stock item
- */
-export async function addEstoque(data) {
-  return authenticatedFetchAPI('/estoque', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-/**
- * Updates an existing stock item
- * @param {number} itemId - Stock item ID
- * @param {Object} data - Updated data
- * @returns {Promise<Object>} Updated stock item
- */
-export async function updateEstoque(itemId, data) {
-  return authenticatedFetchAPI(`/estoque/${itemId}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  });
-}

@@ -10,8 +10,6 @@ import DashboardScreen from '../screens/DashboardScreen';
 import MetricsScreen from '../screens/MetricsScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import TalhoesScreen from '../screens/TalhoesScreen';
-import TalhaoDetailScreen from '../screens/TalhaoDetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import colors from '../theme/colors';
 
@@ -41,8 +39,6 @@ function ProfileStackNavigator() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} />
-      <ProfileStack.Screen name="Talhoes" component={TalhoesScreen} />
-      <ProfileStack.Screen name="TalhaoDetail" component={TalhaoDetailScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
     </ProfileStack.Navigator>
   );

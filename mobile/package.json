@@ -4,8 +4,8 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -37,7 +37,8 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^14.0.0",
     "babel-preset-expo": "^56.0.14",
-    "jest": "^30.4.2"
+    "jest": "^30.4.2",
+    "react-test-renderer": "19.1.0"
   },
   "private": true
 }

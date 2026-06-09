@@ -4,23 +4,16 @@ import {
 } from 'react-native';
 import colors from '../theme/colors';
 import { getAuth, clearAuth } from '../services/api';
-import ModalAddTalhao from '../components/modals/ModalAddTalhao';
 import ModalEditPerfil from '../components/modals/ModalEditPerfil';
 
 export default function ProfileScreen({ navigation }) {
   const { user } = getAuth();
-  const [isModalAddTalhaoVisible, setIsModalAddTalhaoVisible] = useState(false);
   const [isModalEditPerfilVisible, setIsModalEditPerfilVisible] = useState(false);
   const [fazendaId] = useState(1); // Would come from context in real app
 
   const handleLogout = () => {
     clearAuth();
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-  };
-
-  const handleAddTalhaoSuccess = (newTalhao) => {
-    // In a real app, would reload the talhões list from API
-    console.log('Novo talhão criado:', newTalhao);
   };
 
   const handleEditPerfilSuccess = (updatedUser) => {
@@ -78,68 +71,65 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       {/* Talhões */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardTitle}>Talhões Ativos</Text>
-          <TouchableOpacity onPress={() => setIsModalAddTalhaoVisible(true)}>
-            <Text style={styles.addBtn}>+</Text>
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.cardTitle}>Talhões Ativos</Text>
+          </View>
+
+          {/* Visão Geral */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Visão Geral da Propriedade</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Área Total:</Text>
+              <Text style={styles.value}>{fazenda.area}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Localização:</Text>
+              <Text style={styles.value}>{fazenda.localizacao}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.label}>Culturas:</Text>
+              <Text style={styles.value}>{fazenda.culturas}</Text>
+            </View>
+          </View>
+
+          {/* Talhões Link */}
+          <TouchableOpacity style={styles.cardBtn}>
+            <View style={styles.cardBtnContent}>
+               <Text style={styles.cardBtnEmoji}>🌱</Text>
+               <View>
+                 <Text style={styles.cardBtnTitle}>Meus Talhões</Text>
+                 <Text style={styles.cardBtnSub}>Gerencie os campos e dados</Text>
+               </View>
+            </View>
+            <Text style={styles.arrowIcon}>→</Text>
           </TouchableOpacity>
-        </View>
 
-        {/* Visão Geral */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Visão Geral da Propriedade</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Área Total:</Text>
-            <Text style={styles.value}>{fazenda.area}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Localização:</Text>
-            <Text style={styles.value}>{fazenda.localizacao}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Culturas:</Text>
-            <Text style={styles.value}>{fazenda.culturas}</Text>
-          </View>
-        </View>
-
-        {/* Talhões Link */}
-        <TouchableOpacity style={styles.cardBtn} onPress={() => navigation.navigate('Talhoes')}>
-          <View style={styles.cardBtnContent}>
-             <Text style={styles.cardBtnEmoji}>🌱</Text>
-             <View>
-               <Text style={styles.cardBtnTitle}>Meus Talhões</Text>
-               <Text style={styles.cardBtnSub}>Gerencie os campos e dados</Text>
-             </View>
-          </View>
-          <Text style={styles.arrowIcon}>→</Text>
-        </TouchableOpacity>
-
-        {/* Equipe */}
-        <View style={styles.card}>
-          <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>Equipe Vinculada</Text>
-          </View>
-          
-          <View style={styles.teamRow}>
-            {fazenda.membros.map(m => (
-              <View key={m.id} style={styles.teamMember}>
-                <View style={[styles.memberAvatar, m.nome === 'Você' && styles.memberAvatarMe]}>
-                  <Text style={[styles.memberInitials, m.nome === 'Você' && {color: '#fff'}]}>{m.iniciais}</Text>
-                </View>
-                <Text style={styles.memberName}>{m.nome}</Text>
-              </View>
-            ))}
+          {/* Equipe */}
+          <View style={styles.card}>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>Equipe Vinculada</Text>
+            </View>
             
-            <TouchableOpacity style={styles.teamMember} onPress={handleAddMember}>
-              <View style={styles.memberAvatarAdd}>
-                <Text style={styles.memberInitialsAdd}>+</Text>
-              </View>
-              <Text style={styles.memberNameAdd}>Adicionar</Text>
-            </TouchableOpacity>
+            <View style={styles.teamRow}>
+              {fazenda.membros.map(m => (
+                <View key={m.id} style={styles.teamMember}>
+                  <View style={[styles.memberAvatar, m.nome === 'Você' && styles.memberAvatarMe]}>
+                    <Text style={[styles.memberInitials, m.nome === 'Você' && {color: '#fff'}]}>{m.iniciais}</Text>
+                  </View>
+                  <Text style={styles.memberName}>{m.nome}</Text>
+                </View>
+              ))}
+              
+              <TouchableOpacity style={styles.teamMember} onPress={handleAddMember}>
+                <View style={styles.memberAvatarAdd}>
+                  <Text style={styles.memberInitialsAdd}>+</Text>
+                </View>
+                <Text style={styles.memberNameAdd}>Adicionar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -149,12 +139,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={{ height: 100 }} />
 
       {/* Modals */}
-      <ModalAddTalhao
-        isVisible={isModalAddTalhaoVisible}
-        fazenda_id={fazendaId}
-        onClose={() => setIsModalAddTalhaoVisible(false)}
-        onSuccess={handleAddTalhaoSuccess}
-      />
+      {/* Modal de criação de talhão removido */}
 
       <ModalEditPerfil
         isVisible={isModalEditPerfilVisible}
