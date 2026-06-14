@@ -1,9 +1,7 @@
 //===== Bibliotecas =====//
 #include <WiFi.h>
-#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <DHT.h>
-#include <time.h>
 #include <ArduinoJson.h>
 
 unsigned long ultimoEnvio = 0;
@@ -15,7 +13,7 @@ const char* password = ""; // Colocar a senho do seu wifi
 
 //===== Config MQTT =====//
 const char* mqtt_server =
-""; // Colocar o ip do broker mqtt/ domain aws iot core
+""; // Colocar o ip do broker mqtt
 
 //=====  Hardware Pinos e definicoes usados do ESP32 =====//
 const char* device_id = "esp32_01";
@@ -40,7 +38,7 @@ String topicoStatusBomba =
 #define RELE_PIN 26
 
 //===== Objetos =====//
-WiFiClientSecure espClient;
+WiFiClient espClient;
 PubSubClient client(espClient);
 DHT dht(DHTIN, DHTTYPE);
 
@@ -68,12 +66,6 @@ const unsigned long tempoMinimoLigada = 10000;
 
 const unsigned long tempoMinimoDesligada = 30000;
 
-//==== Certificados AWS ====//
-const char* root_ca = R"";
-
-const char* certificate_pem_crt = R"";
-
-const char* private_pem_key = R"";
 
 //===== Conexao com WIFI =====//
 void setup_wifi() {
@@ -139,6 +131,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
         digitalWrite(RELE_PIN, HIGH);
 
+        instanteMudancaBomba =
+        millis() - tempoMinimoDesligada;
+
         bombaLigada = false;
 
         client.publish(
@@ -165,7 +160,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void reconnectMQTT() {
 
   if (WiFi.status() != WL_CONNECTED) {
-  return;
+    return;
   }
 
   if (client.connected()) {
@@ -180,29 +175,39 @@ void reconnectMQTT() {
 
     Serial.println("Tentando conectar MQTT...");
 
-    if (client.connect(
-        device_id,
-        topicoStatusDevice.c_str(),
-        1,
-        true,
-        "OFFLINE"
-      )) {
+    if (client.connect(device_id)) {
 
       Serial.println("MQTT conectado!");
 
-      client.subscribe(topicoComandoBomba.c_str());
+      if (client.subscribe(topicoComandoBomba.c_str())) {
+        Serial.println("Inscrito no topico de comando");
+      } else {
+        Serial.println("Falha ao inscrever no topico");
+      }
 
-      client.publish(
-        topicoStatusDevice.c_str(),
-        "ONLINE",
-        true
-      );
+      if (client.publish(
+            topicoStatusDevice.c_str(),
+            "ONLINE",
+            true
+          )) {
+
+        Serial.println("Status ONLINE enviado");
+
+      } else {
+
+        Serial.println("Falha ao enviar status ONLINE");
+      }
 
     } else {
 
       Serial.print("Falha MQTT. Código: ");
-
       Serial.println(client.state());
+
+      Serial.print("WiFi status: ");
+      Serial.println(WiFi.status());
+
+      Serial.print("IP: ");
+      Serial.println(WiFi.localIP());
     }
   }
 }
@@ -258,6 +263,15 @@ void mostrarLeituras() {
 }
 
 void enviarMQTT() {
+
+  if (!client.connected()) {
+
+    Serial.println(
+      "MQTT desconectado. Telemetria nao enviada."
+    );
+
+    return;
+  }
 
   StaticJsonDocument<256> doc;
 
@@ -356,31 +370,6 @@ void verificarWiFi() {
   }
 }
 
-void sincronizarHorario() {
-
-  configTime(
-    -3 * 3600,
-    0,
-    "pool.ntp.org",
-    "time.nist.gov"
-  );
-
-  Serial.print("Sincronizando horario");
-
-  time_t now = time(nullptr);
-
-  while (now < 8 * 3600 * 2) {
-
-    delay(500);
-
-    Serial.print(".");
-
-    now = time(nullptr);
-  }
-
-  Serial.println("");
-  Serial.println("Horario sincronizado!");
-}
 
 void setup() {
 
@@ -398,17 +387,20 @@ void setup() {
   //===== WIFI =====//
   setup_wifi();
 
-  sincronizarHorario();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.println("WiFi conectado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
 
   //===== MQTT =====//
-  client.setServer(mqtt_server, 8883);
+  client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-
-  espClient.setCACert(root_ca);
-
-  espClient.setCertificate(certificate_pem_crt);
-
-  espClient.setPrivateKey(private_pem_key);
+  client.setBufferSize(1024);
 
   Serial.println("Sistema iniciado!");
 }
@@ -432,10 +424,10 @@ if (client.connected()) {
 
     lerSensores();
 
+    controlarIrrigacao();
+
     mostrarLeituras();
 
     enviarMQTT();
-
-    controlarIrrigacao();
   }
 }
