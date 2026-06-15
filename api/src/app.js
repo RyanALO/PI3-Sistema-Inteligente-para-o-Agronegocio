@@ -11,6 +11,7 @@ const errorHandler  = require('./middleware/errorHandler');
 // Routes
 const authRoutes      = require('./routes/auth');
 const sensoresRoutes  = require('./routes/sensores');
+const sensoresProxyRoutes = require('./routes/sensoresProxy');
 const irrigacaoRoutes = require('./routes/irrigacao');
 const alertasRoutes   = require('./routes/alertas');
 const dashboardRoutes = require('./routes/dashboard');
@@ -60,6 +61,7 @@ app.get('/api/health', (req, res) => {
 
 // ─── Rotas Públicas ───────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/sensores/proxy', sensoresProxyRoutes);
 
 // ─── Rotas Protegidas (JWT obrigatório) ───────────────────────────────────────
 app.use('/api/sensores',   authMiddleware, sensoresRoutes);
@@ -91,29 +93,34 @@ async function startServer() {
   // Aguarda banco de dados ficar disponível (retry com backoff)
   const pool = require('./config/database');
   let retries = 10;
+  let dbConnected = false;
 
   while (retries > 0) {
     try {
       await pool.query('SELECT 1');
       console.log('✅ Banco de dados conectado.');
+      dbConnected = true;
       break;
     } catch (err) {
       retries--;
       console.log(`⏳ Aguardando banco de dados... (${retries} tentativas restantes)`);
-      await new Promise(r => setTimeout(r, 3000));
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, 3000));
+      }
     }
   }
 
-  if (retries === 0) {
-    console.error('❌ Não foi possível conectar ao banco de dados. Encerrando.');
-    process.exit(1);
+  if (!dbConnected) {
+    console.warn('⚠️ Banco de dados não disponível. Continuando com funcionalidades limitadas (proxy de sensores funcionará).');
   }
 
-  // --- Bootstrap do Sistema Inteligente ---
-  const brain = require('./services/brain');
-  const simulator = require('./services/simulator');
-  await brain.init();
-  simulator.start(); // Inicia as leituras IoT a cada 15 segundos
+  // --- Bootstrap do Sistema Inteligente (apenas se banco conectado) ---
+  if (dbConnected) {
+    const brain = require('./services/brain');
+    const simulator = require('./services/simulator');
+    await brain.init();
+    simulator.start(); // Inicia as leituras IoT a cada 15 segundos
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log('');

@@ -14,11 +14,10 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 // ⚠️ CHANGE THIS via environment variable when building/running the app
-// The bundler may expose env vars as `process.env.MY_VAR` (depends on your setup)
-// Fallbacks to the hard-coded AWS IP if not provided.
-const SENSORES_AWS_URL = (
-  (typeof process !== 'undefined' && process.env && (process.env.SENSORES_AWS_URL || process.env.REACT_NATIVE_SENSORES_AWS_URL))
-  || 'http://54.88.57.73:3000/sensores'
+// Routes through backend proxy to avoid CORS issues with direct AWS endpoint
+const SENSORES_PROXY_URL = (
+  (typeof process !== 'undefined' && process.env && (process.env.SENSORES_PROXY_URL || process.env.REACT_NATIVE_SENSORES_PROXY_URL))
+  || `${API_URL}/sensores/proxy`
 );
 
 function toNumber(value) {
@@ -63,15 +62,15 @@ export function buildDashboardSummaryFromSensors(sensores = []) {
 }
 
 export async function getSensoresAws() {
-  const response = await fetch(SENSORES_AWS_URL);
+  const response = await fetch(SENSORES_PROXY_URL);
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || `Erro ${response.status} ao buscar sensores AWS`);
+    throw new Error(data.error || `Erro ${response.status} ao buscar sensores`);
   }
 
   if (!Array.isArray(data)) {
-    throw new Error('Resposta invalida do endpoint AWS de sensores');
+    throw new Error('Resposta invalida do endpoint de sensores');
   }
 
   return data.map(normalizeSensorAws);
