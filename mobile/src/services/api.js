@@ -6,10 +6,9 @@ import { Platform } from 'react-native';
 // ⚠️ Se usar Expo Go em um celular físico, substitua pelo IP local do seu PC
 //    ex: const API_URL = 'http://192.168.1.XXX:3000/api';
 const getApiUrl = () => {
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3001/api';
-  }
-  return 'http://localhost:3001/api';
+  // Para testar em celular físico com Expo Go, precisamos usar o IP do computador na rede.
+  // 10.0.2.2 só funciona no emulador do Android Studio.
+  return 'http://192.168.15.15:3001/api';
 };
 
 const API_URL = getApiUrl();
