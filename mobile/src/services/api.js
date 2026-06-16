@@ -7,9 +7,9 @@ import { Platform } from 'react-native';
 //    ex: const API_URL = 'http://192.168.1.XXX:3000/api';
 const getApiUrl = () => {
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3000/api';
+    return 'http://10.0.2.2:3001/api';
   }
-  return 'http://localhost:3000/api';
+  return 'http://localhost:3001/api';
 };
 
 const API_URL = getApiUrl();
