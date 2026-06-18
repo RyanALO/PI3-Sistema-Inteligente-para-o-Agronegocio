@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:3001/api';
 
 function getToken() {
   return localStorage.getItem('agrotech_token');
@@ -130,5 +130,27 @@ export async function updateConfiguracoes(config) {
   return apiFetch('/configuracoes', {
     method: 'PUT',
     body: JSON.stringify(config)
+  });
+}
+
+// ----- Sensores -----
+export async function getSensores() {
+  return apiFetch('/sensores');
+}
+
+export async function getSensorById(id) {
+  return apiFetch(`/sensores/${id}`);
+}
+
+export async function adicionarSensor(sensorData) {
+  return apiFetch('/sensores', {
+    method: 'POST',
+    body: JSON.stringify(sensorData)
+  });
+}
+
+export async function deletarSensor(id) {
+  return apiFetch(`/sensores/${id}`, {
+    method: 'DELETE'
   });
 }

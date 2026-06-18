@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert
 } from 'react-native';
 import colors from '../theme/colors';
 import { getAuth, clearAuth } from '../services/api';
 import ModalEditPerfil from '../components/modals/ModalEditPerfil';
+import ModalAddMembro from '../components/modals/ModalAddMembro';
 
 export default function ProfileScreen({ navigation }) {
   const { user } = getAuth();
   const [isModalEditPerfilVisible, setIsModalEditPerfilVisible] = useState(false);
+  const [isModalAddMembroVisible, setIsModalAddMembroVisible] = useState(false);
   const [fazendaId] = useState(1); // Would come from context in real app
+  const [membros, setMembros] = useState([
+    { id: 1, nome: 'Você', iniciais: 'VC' },
+    { id: 2, nome: 'João Silva', iniciais: 'JS' },
+    { id: 3, nome: 'Maria Santos', iniciais: 'MS' },
+  ]);
 
   const handleLogout = () => {
     clearAuth();
@@ -31,8 +38,18 @@ export default function ProfileScreen({ navigation }) {
     { icon: '🌾', label: 'CULTIVO', value: 'Soja/Milho' },
   ];
 
+  const fazenda = {
+    area: '1,250 ha',
+    localizacao: 'Goiás, BR',
+    culturas: 'Soja/Milho',
+  };
+
   const handleAddMember = () => {
-    Alert.alert('Novo Membro', 'Fluxo para convidar novo membro iniciado.');
+    setIsModalAddMembroVisible(true);
+  };
+
+  const handleAddMembroSuccess = (novoMembro) => {
+    setMembros(prev => [...prev, novoMembro]);
   };
 
   return (
@@ -93,18 +110,6 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Talhões Link */}
-          <TouchableOpacity style={styles.cardBtn}>
-            <View style={styles.cardBtnContent}>
-               <Text style={styles.cardBtnEmoji}>🌱</Text>
-               <View>
-                 <Text style={styles.cardBtnTitle}>Meus Talhões</Text>
-                 <Text style={styles.cardBtnSub}>Gerencie os campos e dados</Text>
-               </View>
-            </View>
-            <Text style={styles.arrowIcon}>→</Text>
-          </TouchableOpacity>
-
           {/* Equipe */}
           <View style={styles.card}>
             <View style={styles.cardTitleRow}>
@@ -112,7 +117,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
             
             <View style={styles.teamRow}>
-              {fazenda.membros.map(m => (
+              {membros.map(m => (
                 <View key={m.id} style={styles.teamMember}>
                   <View style={[styles.memberAvatar, m.nome === 'Você' && styles.memberAvatarMe]}>
                     <Text style={[styles.memberInitials, m.nome === 'Você' && {color: '#fff'}]}>{m.iniciais}</Text>
@@ -147,6 +152,12 @@ export default function ProfileScreen({ navigation }) {
         onClose={() => setIsModalEditPerfilVisible(false)}
         onSuccess={handleEditPerfilSuccess}
       />
+
+      <ModalAddMembro
+        isVisible={isModalAddMembroVisible}
+        onClose={() => setIsModalAddMembroVisible(false)}
+        onSuccess={handleAddMembroSuccess}
+      />
     </ScrollView>
   );
 }
@@ -157,13 +168,13 @@ const styles = StyleSheet.create({
   coverPhoto: { height: 120, backgroundColor: colors.primaryLight },
   settingsBtn: { position: 'absolute', top: 30, right: 16, width: 40, height: 40, backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
   settingsIcon: { fontSize: 20, color: '#fff' },
-  profileHeader: { alignItems: 'center', marginTop: -40, marginBottom: 20, paddingHorizontal: 16 },
-  avatarContainer: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', elevation: 4, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: colors.primary },
-  avatarEmoji: { fontSize: 40 },
-  farmName: { fontSize: 20, fontWeight: '700', color: colors.textDark, marginTop: 8 },
-  farmCert: { fontSize: 13, color: colors.success, fontWeight: '600', marginTop: 4 },
-  btnEdit: { marginTop: 12, paddingVertical: 8, paddingHorizontal: 20, borderWidth: 1, borderColor: colors.primary, borderRadius: 20 },
-  btnEditText: { color: colors.primary, fontWeight: '600' },
+  Header: { alignItems: 'center', marginTop: -40, marginBottom: 20, paddingHorizontal: 16, paddingVertical: 24, backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 12, elevation: 2 },
+  avatarLarge: { width: 90, height: 90, borderRadius: 45, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 3, marginBottom: 16 },
+  avatarText: { fontSize: 36, fontWeight: '700', color: '#fff' },
+  farmName: { fontSize: 24, fontWeight: '800', color: colors.textDark, marginTop: 8, marginBottom: 4, letterSpacing: 0.5 },
+  certification: { fontSize: 14, color: colors.success, fontWeight: '600', marginBottom: 16 },
+  editBtn: { marginTop: 12, paddingVertical: 10, paddingHorizontal: 24, backgroundColor: colors.primary, borderRadius: 20, elevation: 2 },
+  editBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   card: { backgroundColor: '#fff', marginHorizontal: 16, padding: 16, borderRadius: 12, marginBottom: 16, elevation: 1 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.textDark, marginBottom: 12 },
   cardTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
@@ -184,5 +195,7 @@ const styles = StyleSheet.create({
   memberName: { fontSize: 11, color: colors.textDark },
   memberAvatarAdd: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#f0f0f0', borderStyle: 'dashed', borderWidth: 1, borderColor: colors.textMuted, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
   memberInitialsAdd: { fontSize: 20, color: colors.textMuted },
-  memberNameAdd: { fontSize: 11, color: colors.textMuted }
+  memberNameAdd: { fontSize: 11, color: colors.textMuted },
+  logoutBtn: { marginHorizontal: 16, marginBottom: 40, paddingVertical: 14, paddingHorizontal: 24, backgroundColor: '#e74c3c', borderRadius: 12, justifyContent: 'center', alignItems: 'center', elevation: 3 },
+  logoutText: { color: '#fff', fontWeight: '700', fontSize: 16, letterSpacing: 0.5 }
 });

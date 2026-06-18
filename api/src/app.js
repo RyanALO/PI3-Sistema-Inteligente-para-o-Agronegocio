@@ -87,7 +87,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 async function startServer() {
   // Aguarda banco de dados ficar disponível (retry com backoff)

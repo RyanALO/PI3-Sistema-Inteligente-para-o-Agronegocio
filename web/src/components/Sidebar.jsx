@@ -1,72 +1,119 @@
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { logout, getUser } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { logout } from '../services/api';
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = getUser();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
-  const initials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'AT';
-
-  const NavLink = ({ to, label, emoji }) => {
-    const active = location.pathname.startsWith(to);
-    return (
-      <Link 
-        to={to} 
-        style={{
-          textDecoration: 'none',
-          color: active ? 'var(--primary)' : 'var(--text-muted)',
-          fontWeight: active ? '700' : '500',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          background: active ? 'rgba(27, 94, 32, 0.08)' : 'transparent',
-          marginBottom: '8px',
-          transition: 'var(--transition)'
-        }}
-      >
-        <span style={{ fontSize: '1.2rem' }}>{emoji}</span> 
-        <span className="sidebar-link-text">{label}</span>
-      </Link>
-    );
-  };
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="navbar-logo" style={{ borderRadius: '8px', width: '36px', height: '36px', fontSize: '1.2rem' }}>🌱</div>
-        <span className="navbar-title sidebar-title">AgroTech</span>
+    <aside style={styles.sidebar}>
+      <div style={styles.brand}>
+        <div style={styles.logo}>🌱</div>
+        <span style={styles.title}>AgroTech</span>
       </div>
 
-      <div className="sidebar-links">
-        <NavLink to="/dashboard" label="Início" emoji="🏠" />
-        <NavLink to="/metricas" label="Métricas" emoji="📊" />
-        <NavLink to="/fazenda" label="Fazenda" emoji="🚜" />
-        <NavLink to="/talhoes" label="Talhões" emoji="🌱" />
-        <NavLink to="/configuracoes" label="Configurações" emoji="⚙️" />
-      </div>
+      <nav style={styles.nav}>
+        <a href="/dashboard" style={{...styles.navLink, ...(isActive('/dashboard') ? styles.navLinkActive : {})}}>
+          <span style={styles.navIcon}>📊</span>
+          Dashboard
+        </a>
+        <a href="/fazenda" style={{...styles.navLink, ...(isActive('/fazenda') ? styles.navLinkActive : {})}}>
+          <span style={styles.navIcon}>🚜</span>
+          Fazenda
+        </a>
+        <a href="/talhoes" style={{...styles.navLink, ...(isActive('/talhoes') ? styles.navLinkActive : {})}}>
+          <span style={styles.navIcon}>🌱</span>
+          Talhões
+        </a>
+        <a href="/configuracoes" style={{...styles.navLink, ...(isActive('/configuracoes') ? styles.navLinkActive : {})}}>
+          <span style={styles.navIcon}>⚙️</span>
+          Configurações
+        </a>
+      </nav>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="navbar-avatar" style={{ width: '36px', height: '36px', fontSize: '0.85rem' }}>{initials}</div>
-          <div className="sidebar-user-info">
-            <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-dark)' }}>{user?.name || 'Usuário'}</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Admin</span>
-          </div>
-        </div>
-        <button className="btn-logout" onClick={handleLogout} style={{ width: '100%', marginTop: '12px', padding: '0.6rem' }}>
-          Sair do Sistema
+      <div style={styles.footer}>
+        <button onClick={handleLogout} style={styles.logoutBtn}>
+          🚪 Sair
         </button>
       </div>
     </aside>
   );
 }
+
+const styles = {
+  sidebar: {
+    position: 'fixed',
+    left: 0,
+    top: 0,
+    width: '200px',
+    height: '100vh',
+    backgroundColor: '#1b5e20',
+    color: '#fff',
+    padding: '1.5rem 1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+    zIndex: 1000
+  },
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginBottom: '2rem',
+    paddingBottom: '1rem',
+    borderBottom: '1px solid rgba(255,255,255,0.2)'
+  },
+  logo: {
+    fontSize: '1.8rem'
+  },
+  title: {
+    fontWeight: '700',
+    fontSize: '1.1rem'
+  },
+  nav: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  navLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    color: '#fff',
+    textDecoration: 'none',
+    transition: 'background 0.3s',
+    cursor: 'pointer'
+  },
+  navLinkActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    fontWeight: '600'
+  },
+  navIcon: {
+    fontSize: '1.2rem'
+  },
+  footer: {
+    borderTop: '1px solid rgba(255,255,255,0.2)',
+    paddingTop: '1rem'
+  },
+  logoutBtn: {
+    width: '100%',
+    backgroundColor: '#c62828',
+    color: '#fff',
+    border: 'none',
+    padding: '0.75rem',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    transition: 'background 0.3s'
+  }
+};
